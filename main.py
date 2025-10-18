@@ -55,12 +55,16 @@ def get_user_by_id(user_id: str):
         print(f"Error: {e}")
 
 
-@app.post("/newuser")
-def create_new_user():
+# Type Declaration for Endpoint
+class CreateUserModel(BaseModel):
+    subscription_tier: str
+
+@app.post("/users/")
+def create_new_user(user: CreateUserModel):
     try:
         response = (
             supabase.table("user_profiles")
-            .insert({"user_id": str(uuid.uuid4()), "subscription_tier": "free"})
+            .insert({"user_id": str(uuid.uuid4()), "subscription_tier": user.subscription_tier})
             .execute()
         )
         return {"code": 200, "response": response.data}
