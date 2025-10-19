@@ -8,6 +8,8 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
+#for the ratelimit feature
+from datetime import datetime
 
 app = FastAPI()
 
@@ -72,3 +74,24 @@ def create_new_user(user: CreateUserModel):
     except Exception as e:
         print(f"Error: {e}")
 
+#piere code 
+
+from datetime import datetime, timedelta
+
+class create_post(base_model):
+    user_id: str
+    post_content: str
+
+@app.post("/newpost")
+def create_new_post(post: create_post):
+    one_week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+    recent_posts = supabase.table("user_posts").select("*").eq("user_id", post.user_id).gte("created_at", one_week_ago).execute()
+    post_count = len(recent_posts.data)
+    
+    WEEKLY_LIMIT = 10
+    if post_count >= WEEKLY_LIMIT:
+        return {"code": 400, "error": "Weekly post limit reached. You can only create 10 AI-generated posts per week."}
+    
+    response = supabase.table("user_posts").insert({"post_id": str(uuid.uuid4()), "user_id": post.user_id, "post_content": post.post_content, "ai_generated": True}).execute()
+    
+    return {"code": 201, "message": "Post created successfully", "response": response.data, "remaining_posts": WEEKLY_LIMIT - post_count - 1}
