@@ -112,7 +112,7 @@ def create_new_follow(user_id: str, creator_id: int):
             .execute()
         )
         if follows.count >= cap:
-            return {"code": 429, "error": "User is at their following linit"}
+            return {"code": 429, "error": "User is at their following limit"}
         result = (
             supabase.table("user_follows").insert({
                 "id": str(uuid.uuid4()),
