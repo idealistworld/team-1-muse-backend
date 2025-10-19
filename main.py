@@ -8,8 +8,6 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
-#for the ratelimit feature
-from datetime import datetime
 
 app = FastAPI()
 
@@ -56,8 +54,6 @@ def get_user_by_id(user_id: str):
     except Exception as e:
         print(f"Error: {e}")
 
-
-# Type Declaration for Endpoint
 class CreateUserModel(BaseModel):
     subscription_tier: str
 
@@ -75,76 +71,52 @@ def create_new_user(user: CreateUserModel):
         print(f"Error: {e}")
 
 
-#limit AI-generated posts to 10 per week
+class create_content(BaseModel):
+    creator_id: int 
+    post_url: str
 
-from datetime import datetime, timedelta
+@app.post("/creator-content")
+def create_new_creator_content(post: create_content):
+    existing_post = (
+        supabase.table("creator_content")
+        .select("*")
+        .eq("post_url", post.post_url)
+        .execute()
+    )
+    if existing_post.data:
+        return {"code": 400, "error": "Duplicate URL detected. This post already exists."}
 
-class create_post(base_model):
-    user_id: str
-    post_content: str
+    response = (
+        supabase.table("creator_content")
+        .insert({
+            "creator_id": post.creator_id,
+            "post_url": post.post_url
+        })
+        .execute()
+    )
+    return {"code": 201, "message": "Post created successfully", "response": response}
 
-@app.post("/newpost")
-def create_new_post(post: create_post):
-    one_week_ago = (datetime.now() - timedelta(days=7)).isoformat()
-    recent_posts = supabase.table("user_posts").select("*").eq("user_id", post.user_id).gte("created_at", one_week_ago).execute()
-    post_count = len(recent_posts.data)
-    
-    WEEKLY_LIMIT = 10
-    if post_count >= WEEKLY_LIMIT:
-        return {"code": 400, "error": "Weekly post limit reached. You can only create 10 AI-generated posts per week."}
-    
-    response = supabase.table("user_posts").insert({"post_id": str(uuid.uuid4()), "user_id": post.user_id, "post_content": post.post_content, "ai_generated": True}).execute()
-    
-    return {"code": 201, "message": "Post created successfully", "response": response.data, "remaining_posts": WEEKLY_LIMIT - post_count - 1}
-#Following a creator
-
-follow_caps = {"free": 5, "pro": 30}
-
-@app.post("/follow")
-def create_new_follow(user_id: str, creator_id: int):
+@app.delete("/user-posts/{post_id}")
+def delete_user_post(post_id: str):
     try:
-        creator = (
-            supabase.table("creator_profiles")
-            .select("*")
-            .eq("creator_id", creator_id)
+        exists = (
+            supabase.table("user_posts")
+            .select("post_id")
+            .eq("post_id", post_id)
+            .limit(1)
             .execute()
         )
-        if not creator.data:
-            return {"code": 404, "error": "Creator not found"}
-        existing = (
-            supabase.table("user_follows")
-            .select("*")
-            .eq("user_id", user_id)
-            .eq("creator_id", creator_id)
+        if not exists.data:
+            return {"code": 404, "error": "Post not found"}
+
+        response = (
+            supabase.table("user_posts")
+            .delete()
+            .eq("post_id", post_id)
             .execute()
         )
-        if existing.data:
-            return {"code": 409, "error": "Creator is already followed"}
-        user = (
-            supabase.table("user_profiles")
-            .select("subscription_tier")
-            .eq("user_id", user_id)
-            .single()
-            .execute()
-        )
-        tier = user.data["subscription_tier"].lower()
-        cap = follow_caps.get(tier)
-        follows = (
-            supabase.table("user_follows")
-            .select("id", count="exact")
-            .eq("user_id", user_id)
-            .execute()
-        )
-        if follows.count >= cap:
-            return {"code": 429, "error": "User is at their following limit"}
-        result = (
-            supabase.table("user_follows").insert({
-                "id": str(uuid.uuid4()),
-                "user_id": user_id,
-                "creator_id": creator_id
-            }).execute()
-        )
-        return {"code": 200, "response": "Follow created"}
+        return {"code": 200, "message": "Post deleted successfully", "response": response.data}
+    
     except Exception as e:
         print(f"Error: {e}")
->>>>>>> cc0575d6349629478c15a9f78a5ac4fe8c897d68
+        return {"code": 500, "error": str(e)}
