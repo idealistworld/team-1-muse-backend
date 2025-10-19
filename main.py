@@ -74,7 +74,8 @@ def create_new_user(user: CreateUserModel):
     except Exception as e:
         print(f"Error: {e}")
 
-#piere code 
+
+#limit AI-generated posts to 10 per week
 
 from datetime import datetime, timedelta
 
@@ -95,3 +96,55 @@ def create_new_post(post: create_post):
     response = supabase.table("user_posts").insert({"post_id": str(uuid.uuid4()), "user_id": post.user_id, "post_content": post.post_content, "ai_generated": True}).execute()
     
     return {"code": 201, "message": "Post created successfully", "response": response.data, "remaining_posts": WEEKLY_LIMIT - post_count - 1}
+#Following a creator
+
+follow_caps = {"free": 5, "pro": 30}
+
+@app.post("/follow")
+def create_new_follow(user_id: str, creator_id: int):
+    try:
+        creator = (
+            supabase.table("creator_profiles")
+            .select("*")
+            .eq("creator_id", creator_id)
+            .execute()
+        )
+        if not creator.data:
+            return {"code": 404, "error": "Creator not found"}
+        existing = (
+            supabase.table("user_follows")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("creator_id", creator_id)
+            .execute()
+        )
+        if existing.data:
+            return {"code": 409, "error": "Creator is already followed"}
+        user = (
+            supabase.table("user_profiles")
+            .select("subscription_tier")
+            .eq("user_id", user_id)
+            .single()
+            .execute()
+        )
+        tier = user.data["subscription_tier"].lower()
+        cap = follow_caps.get(tier)
+        follows = (
+            supabase.table("user_follows")
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .execute()
+        )
+        if follows.count >= cap:
+            return {"code": 429, "error": "User is at their following limit"}
+        result = (
+            supabase.table("user_follows").insert({
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "creator_id": creator_id
+            }).execute()
+        )
+        return {"code": 200, "response": "Follow created"}
+    except Exception as e:
+        print(f"Error: {e}")
+>>>>>>> cc0575d6349629478c15a9f78a5ac4fe8c897d68
