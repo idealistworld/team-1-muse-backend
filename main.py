@@ -300,7 +300,7 @@ def get_creator_by_id(creator_id: int):
             raise HTTPException(status_code=404, detail="Creator does not exist")
 
         response = (
-            supabase.table("creator_id")
+            supabase.table("creator_profiles")
             .select("*")
             .eq("creator_id", creator_id)
             .execute()
@@ -315,7 +315,7 @@ def get_creator_by_id(creator_id: int):
 
 # Get all content from a specific creator
 @app.get("/content/creator/{creator_id}")
-def get_all_content_by_creator(creator_id: str):
+def get_all_content_by_creator(creator_id: int):
     try:
         response = (
             supabase.table("creator_content")
