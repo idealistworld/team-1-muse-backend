@@ -6,8 +6,9 @@ Our main entities are users, posts, content, and creators
 
 ## What it does
 
-Our API manages a content creation platform (LinkedIn, X, etc)
-Users can follow creators and generate AI generated posts as they interact with creator content
+Our API is built ot manage the interactions between users, user posts, creators, and creator content. We've built out some of the basic CRUD functions with business logic and validation built in along with error handling. In the future we plan to expand using the Next API rather than FastAPI, so here are the basic endpoints we built out.
+
+The platform itself will allow users to create their own posts for platforms such as LinkedIn that take inspiration from other successful posts on other platforms from creators that they choose to follow.
 
 ## Setup
 
@@ -52,6 +53,8 @@ Users can follow creators and generate AI generated posts as they interact with 
 ## Key Business Rule
 
 Has strict rate limit of 10 post generation per week. For now this is for all users so that they don't make say 10,000 and crash our systems. In the future for a business model, it will serve as enticement to force the user to pay for a premium version of the model as X amount of posts is not sufficient to gain followers or get the post that most fits the message you want to get across.
+
+We also included many other examples of business logic. We have examples of rate limiting and data validation for subscription tiers or other platforms or valid URLs. In the future we plan to add more, but plan to do so incrementally as we build the product to avoid any technical debt. These initial edits were made to create a strong foundation that we could build upon.
 
 # Process
 
