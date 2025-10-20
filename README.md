@@ -13,10 +13,9 @@ Users can follow creators and generate AI generated posts as they interact with 
 
 1. python3 -m venv .venv
 2. source .venv/bin/activate
-3. pip3 install "fastapi[standard]" uvicorn supabase python-dotenv pydantic
-   OR
-   pip install -r requirements.txt
+3. pip install -r requirements.txt
 4. fastapi dev main.py
+5. Test at http://127.0.0.1:8000/docs
 
 ## Endpoints (at a minimum)
 
