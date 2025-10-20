@@ -151,7 +151,7 @@ def create_new_follow(user_id: str, creator_id: int):
 
 # Return data on a specific post
 @app.get("/posts/{post_id}")
-def get_user_by_id(post_id: str):
+def get_post_by_id(post_id: str):
     try:
         exists = (
             supabase.table("user_posts")
@@ -268,35 +268,6 @@ def create_new_creator(creator: CreateCreatorModel):
         return {"code": 500, "error": str(e)}
 
 
-# Return data on a specific creator
-@app.get("/creators/{creator_id}")
-def get_user_by_id(creator_id: int):
-    try:
-        exists = (
-            supabase.table("creator_profiles")
-            .select("creator_id")
-            .eq("creator_id", creator_id)
-            .limit(1)
-            .execute()
-        )
-        
-        if not exists.data:
-            raise HTTPException(status_code=404, detail="Creator content does not exist")
-
-        response = (
-            supabase.table("creator_profiles")
-            .select("*")
-            .eq("creator_id", creator_id)
-            .execute()
-        )
-
-        return {"response": response.data}
-
-    except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 # Get all creators on the platform *can create a separate endpoint for getting all creators that someone follows
 @app.get("/creators")
 def get_all_creators():
@@ -315,7 +286,7 @@ def get_all_creators():
 
 # Return data on a specific creator
 @app.get("/creators/{creator_id}")
-def get_user_by_id(creator_id: int):
+def get_creator_by_id(creator_id: int):
     try:
         exists = (
             supabase.table("creator_profiles")

@@ -25,7 +25,7 @@ Users can follow creators and generate AI generated posts as they interact with 
 
 ### User Endpoints
 
-- `POST /users` - Create a new user object
+- `POST /users` - Create a new user object. Has business logic to check if it's a valid subscription type.
 - `GET /users` - Return all of the users from the users table (these are the end users, not creators)
 - `GET /users/[user_id]` - Returns the user object with that user_id
 - `POST /users/follow` - Create a new follow record. Has business logic to not allow multiple follows for same person as well as follow limits by subscription tier.
@@ -34,14 +34,20 @@ Users can follow creators and generate AI generated posts as they interact with 
 
 - `POST /posts` - Create a new post with business logic integrated to rate limit
 - `DELETE /posts/[post_id]` - Delete a post with that post_id
+- `GET /posts/{post_id}` - Returns the information about a post with a specific post_id
+- `GET /posts/user/{user_id}` - Return all posts by user_id
 
 ### Content Endpoints
 
-- `POST /content` - Create a new piece of content, i.e a LinkedIn post
+- `POST /content` - Create a new piece of content, i.e a LinkedIn post, makes sure that URL is valid
+- `GET /content/{content_id}` - Return content given its content_id, returns error if post does not exist
+- `GET /content/creator/{creator_id}` - Returns all the content for a given creator_id
 
 ### Creator Endpoints
 
-- `POST /creators/content` - Create a new piece of creator content
+- `POST /creators` - Create a new piece of creator content. Makes sure that the profile URL is a valid URL. It also checks that their platform is allowed
+- `GET /creators` - Returns all creators
+- `GET /creators/{creator_id}` - Returns creator given creator_id
 
 ## Key Business Rule
 
